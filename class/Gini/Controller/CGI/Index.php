@@ -96,7 +96,7 @@ class Index extends \Gini\Controller\CGI {
 
         // This ensures that we get a pretty index in the browser, but it is
         // optional.
-        $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
+        // $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
 
         $realm = \Gini\Config::get('dav.auth')['realm'];
 
