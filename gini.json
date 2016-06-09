@@ -1,0 +1,6 @@
+{
+    "name": "Gini Index",
+    "description": "Gini Index Server",
+    "version": "0.1.0",
+    "dependencies": {}
+}
