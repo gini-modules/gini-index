@@ -4,6 +4,11 @@ namespace Gini\Controller;
 
 class API {
 
+    private function modulePath($path=null) {
+        $modulePath = \Gini\Config::get('dav.root') ?: APP_PATH . '/' . DATA_DIR . '/modules';
+        return $modulePath . '/' . ltrim($path, '/');
+    }
+
     private function digestFile() {
         return APP_PATH.'/'.DATA_DIR.'/digest';
     }
@@ -36,6 +41,37 @@ class API {
         }
         $auth = new \Gini\Index\Auth\DAV;
         return $auth->createToken($username);
+    }
+
+    public function actionSearch($keyword=null) {
+        $regex = '{(?:'.implode('|', preg_split('{\s+}', $keyword)).')}i';
+        $result = [];
+        $info = @json_decode(file_get_contents($this->modulePath('index.json')), true);
+        foreach ($info as $pkgname => $pkgs) {
+            if (!$pkgs) {
+                continue;
+            }
+            if (isset($result[$pkgname])) {
+                continue;
+            }
+            if (preg_match($regex, $pkgname)) {
+                $vers = array_keys($pkgs);
+                // find latest match version
+                foreach ($vers as $version) {
+                    $v = new \Gini\Version($version);
+                    if ($matched) {
+                        if ($matched->compare($v) > 0) {
+                            continue;
+                        }
+                    }
+                    $matched = $v;
+                }
+                if ($matched) {
+                    $result[$pkgname] = $pkgs[$matched->fullVersion];
+                }
+            }
+        }
+        return $result;
     }
 
 }
