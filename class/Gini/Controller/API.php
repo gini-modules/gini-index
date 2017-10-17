@@ -2,18 +2,21 @@
 
 namespace Gini\Controller;
 
-class API {
-
-    private function modulePath($path=null) {
+class API
+{
+    private function modulePath($path=null)
+    {
         $modulePath = \Gini\Config::get('dav.root') ?: APP_PATH . '/' . DATA_DIR . '/modules';
         return $modulePath . '/' . ltrim($path, '/');
     }
 
-    private function digestFile() {
+    private function digestFile()
+    {
         return APP_PATH.'/'.DATA_DIR.'/digest';
     }
 
-    private function verify($username, $password) {
+    private function verify($username, $password)
+    {
         foreach (file($this->digestFile(), FILE_IGNORE_NEW_LINES) as $line) {
             if (substr_count($line, ':') !== 2) {
                 return false;
@@ -35,7 +38,8 @@ class API {
         return false;
     }
 
-    public function actionCreateToken($username=null, $password=null) {
+    public function actionCreateToken($username=null, $password=null)
+    {
         if (!$this->verify($username, $password)) {
             return false;
         }
@@ -43,7 +47,8 @@ class API {
         return $auth->createToken($username);
     }
 
-    public function actionSearch($keyword=null) {
+    public function actionSearch($keyword=null)
+    {
         $regex = '{(?:'.implode('|', preg_split('{\s+}', $keyword)).')}i';
         $result = [];
         $info = @json_decode(file_get_contents($this->modulePath('index.json')), true);
@@ -73,5 +78,4 @@ class API {
         }
         return $result;
     }
-
 }

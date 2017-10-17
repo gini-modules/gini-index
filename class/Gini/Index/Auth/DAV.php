@@ -10,11 +10,13 @@ const RANDOM_BYTES_LENGTH=20;
 
 class DAV implements BackendInterface
 {
-    private function tokensFile() {
+    private function tokensFile()
+    {
         return sys_get_temp_dir().'/gini-index-tokens.json';
     }
 
-    public function createToken($username) {
+    public function createToken($username)
+    {
         $token = sha1($username . ':' . openssl_random_pseudo_bytes(RANDOM_BYTES_LENGTH));
         $bcrypt = password_hash($token, PASSWORD_BCRYPT);
 
@@ -25,12 +27,14 @@ class DAV implements BackendInterface
         return base64_encode($username . ':' . $token);
     }
 
-    protected function validateUserToken($username, $token) {
+    protected function validateUserToken($username, $token)
+    {
         $tokenInfo = (array) @json_decode(file_get_contents($this->tokensFile()), true);
         return isset($tokenInfo[$username]) && password_verify($token, $tokenInfo[$username]);
     }
 
-    public function authenticate(Server $server, $realm) {
+    public function authenticate(Server $server, $realm)
+    {
         $auth = new HTTP($realm, $server->httpRequest, $server->httpResponse);
         $usertoken = $auth->getCredentials($server->httpRequest);
         if (!$usertoken) {
@@ -49,7 +53,8 @@ class DAV implements BackendInterface
     }
 
     private $currentUser;
-    public function getCurrentUser() {
+    public function getCurrentUser()
+    {
         return $this->currentUser;
     }
 }

@@ -2,20 +2,23 @@
 
 namespace Gini\Controller\CGI;
 
-class Index extends \Gini\Controller\CGI {
-
-    private function modulePath($path=null) {
-        $modulePath = \Gini\Config::get('dav.root') ?: APP_PATH . '/' . DATA_DIR . '/modules';
-        return $modulePath . '/' . ltrim($path, '/');
+class Index extends \Gini\Controller\CGI
+{
+    private function modulePath($path=null)
+    {
+        return \Gini\Module\GiniIndex::modulePath($path);
     }
 
-    private function writeInfoFile($filename, $data) {
+    private function writeInfoFile($filename, $data)
+    {
         return file_put_contents($filename, $data, LOCK_EX);
     }
 
-    public function _fileModified($path) {
-
-        if (!preg_match('`^([\w-]+)/([\w-.]+)\.tgz$`', $path, $parts)) return;
+    public function _fileModified($path)
+    {
+        if (!preg_match('`^([\w-]+)/([\w-.]+)\.tgz$`', $path, $parts)) {
+            return;
+        }
 
         $module = $parts[1];
         $version = $parts[2];
@@ -43,8 +46,11 @@ class Index extends \Gini\Controller\CGI {
         $this->writeInfoFile($totalIndexPath, J($totalIndexInfo));
     }
 
-    public function _fileUnbind($path) {
-        if (!preg_match('`^([\w-]+)/([\w-.]+)\.tgz$`', $path, $parts)) return;
+    public function _fileUnbind($path)
+    {
+        if (!preg_match('`^([\w-]+)/([\w-.]+)\.tgz$`', $path, $parts)) {
+            return;
+        }
 
         $module = $parts[1];
         $version = $parts[2];
@@ -62,24 +68,25 @@ class Index extends \Gini\Controller\CGI {
             unset($totalIndexInfo[$module][$version]);
             $this->writeInfoFile($totalIndexPath, J($totalIndexInfo));
         }
-
     }
 
-    private function lockFile() {
+    private function lockFile()
+    {
         return sys_get_temp_dir().'/gini-index.lock';
     }
 
-    private function digestFile() {
+    private function digestFile()
+    {
         return APP_PATH.'/'.DATA_DIR.'/digest';
     }
 
-    public function __index() {
+    public function __index()
+    {
+        $conf = \Gini\Config::get('database.default');
 
         $rootPath = $this->modulePath();
         \Gini\File::ensureDir($rootPath);
-
-        // Now we're creating a whole bunch of objects
-        $rootDirectory = new \Sabre\DAV\FS\Directory($rootPath);
+        $rootDirectory = new \Gini\Index\Directory($rootPath, true);
 
         // The server object is responsible for making sense out of the WebDAV protocol
         $server = new \Sabre\DAV\Server($rootDirectory);
@@ -91,22 +98,21 @@ class Index extends \Gini\Controller\CGI {
         // The lock manager is reponsible for making sure users don't overwrite
         // each others changes.
         $lockBackend = new \Sabre\DAV\Locks\Backend\File($this->lockFile());
-        $lockPlugin = new \Sabre\DAV\Locks\Plugin($lockBackend);
-        $server->addPlugin($lockPlugin);
+        $server->addPlugin(new \Sabre\DAV\Locks\Plugin($lockBackend));
 
         // This ensures that we get a pretty index in the browser, but it is
         // optional.
-        // $server->addPlugin(new \Sabre\DAV\Browser\Plugin());
+        // $browserPlugin = new \Sabre\DAV\Browser\Plugin();
+        // $server->addPlugin($browserPlugin);
 
         $realm = \Gini\Config::get('dav.auth')['realm'];
 
         // Adding the plugin to the server
         $authArray = preg_split('/\s+/', strval(
-            $server->httpRequest->getHeader('Authorization')), 2, PREG_SPLIT_NO_EMPTY);
-        $authScheme = empty($authArray) ? NULL : strtolower($authArray[0]);
-        if ($server->httpRequest->getMethod() == 'GET') {
-            // No need to auth.
-        } elseif ($authScheme == 'gini') {
+            $server->httpRequest->getHeader('Authorization')
+        ), 2, PREG_SPLIT_NO_EMPTY);
+        $authScheme = empty($authArray) ? null : strtolower($authArray[0]);
+        if ($authScheme == 'gini') {
             $auth = new \Gini\Index\Auth\DAV;
             $authPlugin = new \Sabre\DAV\Auth\Plugin($auth, $realm);
             $server->addPlugin($authPlugin);
@@ -116,6 +122,11 @@ class Index extends \Gini\Controller\CGI {
             $server->addPlugin($authPlugin);
         }
 
+        $aclPlugin = new \Sabre\DAVACL\Plugin();
+        // $aclPlugin->principalCollectionSet = [ '@principals' ];
+        // $aclPlugin->defaultUsernamePath = '@principals';
+        $server->addPlugin($aclPlugin);
+        
         $server->on('afterWriteContent', [$this, '_fileModified']);
         $server->on('afterCreateFile', [$this, '_fileModified']);
 
@@ -124,5 +135,4 @@ class Index extends \Gini\Controller\CGI {
         // All we need to do now, is to fire up the server
         $server->exec();
     }
-    
 }
