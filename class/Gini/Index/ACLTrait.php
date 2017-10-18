@@ -55,8 +55,10 @@ trait ACLTrait
         }
 
         list($module, ) = explode('/', $path, 2);
-        if ($module == $path && $this instanceof File) {
-            return [['privilege' => '{DAV:}read', 'principal' => '{DAV:}all', 'protected' => true]];
+        if ($this instanceof File) {
+            if ($module == $path || basename($path) == 'index.json') {
+                return [['privilege' => '{DAV:}read', 'principal' => '{DAV:}all', 'protected' => true]];
+            }
         }
 
         $aclConf = (array) @yaml_parse_file(APP_PATH.'/'.DATA_DIR.'/acl.yml');

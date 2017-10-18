@@ -2,7 +2,9 @@
 
 namespace Gini\Controller\CGI;
 
-class Index extends \Gini\Controller\CGI
+use \Gini\Controller\CGI;
+
+class Index extends CGI
 {
     private function modulePath($path=null)
     {
