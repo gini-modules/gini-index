@@ -9,10 +9,11 @@ use \Sabre\DAVACL\PrincipalCollection;
 class Directory extends \Sabre\DAV\FS\Directory implements \Sabre\DAVACL\IACL
 {
     use ACLTrait;
+    use LowerCaseTrait;
 
     private $isRoot = false;
 
-    public function __construct($collection, $isRoot=false)
+    public function __construct($collection, $isRoot = false)
     {
         parent::__construct($collection);
         $this->isRoot = $isRoot;
