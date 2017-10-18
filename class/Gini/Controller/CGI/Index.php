@@ -6,6 +6,8 @@ use \Gini\Controller\CGI;
 
 class Index extends CGI
 {
+    private $server;
+
     private function modulePath($path=null)
     {
         return \Gini\Module\GiniIndex::modulePath($path);
@@ -46,6 +48,26 @@ class Index extends CGI
 
         $totalIndexInfo[$module] = $indexInfo;
         $this->writeInfoFile($totalIndexPath, J($totalIndexInfo));
+    }
+
+    public function _fileBind($path)
+    {
+        error_log($path);
+        if (!preg_match('`^([\w-]+)$`', $path, $parts)) {
+            return;
+        }
+
+        $module = $parts[1];
+        $aclConf = \Gini\Module\GiniIndex::aclConfig();
+
+        $authPlugin = $this->server->getPlugin('auth');
+        if (!isset($acl[$module])) {
+            $aclConf[$module] = [
+                $authPlugin->getCurrentUser() => 'rw'
+            ];
+        }
+
+        \Gini\Module\GiniIndex::aclConfig($aclConf);
     }
 
     public function _fileUnbind($path)
@@ -114,24 +136,25 @@ class Index extends CGI
             $server->httpRequest->getHeader('Authorization')
         ), 2, PREG_SPLIT_NO_EMPTY);
         $authScheme = empty($authArray) ? null : strtolower($authArray[0]);
-        if ($authScheme == 'Digest') {
-            $authBackend = new \Sabre\DAV\Auth\Backend\File($this->digestFile());
-        } else {
+        if ($authScheme == 'gini') {
             $authBackend = new \Gini\Index\Auth\DAV;
+        } else {
+            $authBackend = new \Sabre\DAV\Auth\Backend\File($this->digestFile());
         }
 
         $authPlugin = new \Sabre\DAV\Auth\Plugin($authBackend, $realm);
         $server->addPlugin($authPlugin);
 
         $aclPlugin = new \Sabre\DAVACL\Plugin();
-        // $aclPlugin->principalCollectionSet = [ '@principals' ];
-        // $aclPlugin->defaultUsernamePath = '@principals';
         $server->addPlugin($aclPlugin);
         
         $server->on('afterWriteContent', [$this, '_fileModified']);
         $server->on('afterCreateFile', [$this, '_fileModified']);
 
+        $server->on('afterBind', [$this, '_fileBind']);
         $server->on('afterUnbind', [$this, '_fileUnbind']);
+
+        $this->server = $server;
 
         // All we need to do now, is to fire up the server
         $server->exec();

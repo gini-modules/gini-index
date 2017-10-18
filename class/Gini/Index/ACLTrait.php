@@ -61,7 +61,7 @@ trait ACLTrait
             }
         }
 
-        $aclConf = (array) @yaml_parse_file(APP_PATH.'/'.DATA_DIR.'/acl.yml');
+        $aclConf = \Gini\Module\GiniIndex::aclConfig();
         $conf = [(array) $aclConf['_']];
         $acl = [];
 
