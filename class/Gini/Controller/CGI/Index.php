@@ -114,15 +114,14 @@ class Index extends CGI
             $server->httpRequest->getHeader('Authorization')
         ), 2, PREG_SPLIT_NO_EMPTY);
         $authScheme = empty($authArray) ? null : strtolower($authArray[0]);
-        if ($authScheme == 'gini') {
-            $auth = new \Gini\Index\Auth\DAV;
-            $authPlugin = new \Sabre\DAV\Auth\Plugin($auth, $realm);
-            $server->addPlugin($authPlugin);
+        if ($authScheme == 'Digest') {
+            $authBackend = new \Sabre\DAV\Auth\Backend\File($this->digestFile());
         } else {
-            $digestAuth = new \Sabre\DAV\Auth\Backend\File($this->digestFile());
-            $authPlugin = new \Sabre\DAV\Auth\Plugin($digestAuth, $realm);
-            $server->addPlugin($authPlugin);
+            $authBackend = new \Gini\Index\Auth\DAV;
         }
+
+        $authPlugin = new \Sabre\DAV\Auth\Plugin($authBackend, $realm);
+        $server->addPlugin($authPlugin);
 
         $aclPlugin = new \Sabre\DAVACL\Plugin();
         // $aclPlugin->principalCollectionSet = [ '@principals' ];
