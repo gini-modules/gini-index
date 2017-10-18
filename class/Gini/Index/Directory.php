@@ -9,7 +9,7 @@ use \Sabre\DAVACL\PrincipalCollection;
 class Directory extends \Sabre\DAV\FS\Directory implements \Sabre\DAVACL\IACL
 {
     use ACLTrait;
-    use LowerCaseTrait;
+    use NameingTrait;
 
     private $isRoot = false;
 
