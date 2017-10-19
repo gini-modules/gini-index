@@ -26,8 +26,8 @@ class Server
 
         // This ensures that we get a pretty index in the browser, but it is
         // optional.
-        // $browserPlugin = new \Sabre\DAV\Browser\Plugin();
-        // $server->addPlugin($browserPlugin);
+        $browserPlugin = new Browser();
+        $server->addPlugin($browserPlugin);
 
         $realm = \Gini\Config::get('dav.auth')['realm'];
 
@@ -37,7 +37,7 @@ class Server
         ), 2, PREG_SPLIT_NO_EMPTY);
         $authScheme = empty($authArray) ? null : strtolower($authArray[0]);
         if ($authScheme == 'gini') {
-            $authBackend = new \Gini\Index\Auth\DAV;
+            $authBackend = new Auth\DAV;
         } else {
             $authBackend = new \Sabre\DAV\Auth\Backend\File($this->digestFile());
         }
@@ -57,7 +57,7 @@ class Server
         $this->server = $server;
     }
 
-    public function start()
+    public function execute()
     {
         $this->server->exec();
     }

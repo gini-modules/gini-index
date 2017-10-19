@@ -19,6 +19,11 @@ class Directory extends \Sabre\DAV\FS\Directory implements \Sabre\DAVACL\IACL
         $this->isRoot = $isRoot;
     }
 
+    public function isRoot()
+    {
+        return $this->isRoot;
+    }
+
     public function getChild($name)
     {
         if ($this->isRoot && $name == 'principals') {

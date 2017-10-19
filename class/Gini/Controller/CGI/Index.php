@@ -9,6 +9,7 @@ class Index extends CGI
     public function __index()
     {
         $server = new \Gini\Index\Server();
-        $server->start();
+        $server->execute();
+        return false;
     }
 }

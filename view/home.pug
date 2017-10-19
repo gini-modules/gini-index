@@ -1,0 +1,16 @@
+doctype html
+head
+  meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+  title= title
+  meta(http-equiv='Content-Style-Type', content='text/css')
+  meta(http-equiv='Content-Script-Type', content='text/javascript')
+  base(href=baseUri)
+body
+  h1 #{node.getName()}
+  ul
+    if !node.isRoot()
+      li
+        a(href='..') ..
+    for subNode in subNodes
+      li
+        a(href=subNode.path)= subNode.name
