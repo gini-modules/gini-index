@@ -3,12 +3,13 @@
 namespace Gini\Index;
 
 use
-    Sabre\DAV,
-    Sabre\HTTP\URLUtil,
-    Sabre\HTTP\RequestInterface,
-    Sabre\HTTP\ResponseInterface;
+    Sabre\DAV;
+use Sabre\HTTP\URLUtil;
+use Sabre\HTTP\RequestInterface;
+use Sabre\HTTP\ResponseInterface;
 
-class Browser extends DAV\ServerPlugin {
+class Browser extends DAV\ServerPlugin
+{
 
     /**
      * reference to server class
@@ -23,11 +24,11 @@ class Browser extends DAV\ServerPlugin {
      * @param DAV\Server $server
      * @return void
      */
-    function initialize(DAV\Server $server) {
-
+    public function initialize(DAV\Server $server)
+    {
         $this->server = $server;
         $this->server->on('method:GET', [$this,'httpGet'], 200);
-        $this->server->on('onHTMLActionsPanel', [$this, 'htmlActionsPanel'],200);
+        $this->server->on('onHTMLActionsPanel', [$this, 'htmlActionsPanel'], 200);
     }
 
     /**
@@ -37,7 +38,8 @@ class Browser extends DAV\ServerPlugin {
      * @param ResponseInterface $response
      * @return bool
      */
-    function httpGet(RequestInterface $request, ResponseInterface $response) {
+    public function httpGet(RequestInterface $request, ResponseInterface $response)
+    {
 
         // We're not using straight-up $_GET, because we want everything to be
         // unit testable.
@@ -58,7 +60,7 @@ class Browser extends DAV\ServerPlugin {
                     '{DAV:}getcontentlength',
                     '{DAV:}getlastmodified',
                 ]);
-                array_walk($propsForChildren, function($props, $path) use (&$subNodes) {
+                array_walk($propsForChildren, function ($props, $path) use (&$subNodes) {
                     $node = $this->server->tree->getNodeForPath($path);
                     $name = $node->getName();
                     if ($node instanceof Directory
@@ -66,14 +68,15 @@ class Browser extends DAV\ServerPlugin {
                         $subNodes[] = [
                             'node' => $node,
                             'path' => $path,
-                            'name' => $name
+                            'name' => $name,
+                            'type' => $props['{DAV:}resourcetype']->getValue(),
+                            'mtime' => $props['{DAV:}getlastmodified']->getTime()->format('Y-m-d H:i:s'),
                         ];
                     }
                 });
             } else {
                 throw new DAV\Exception\NotFound('Not a Directory!');
             }
-
         } catch (DAV\Exception\NotFound $e) {
             // We're simply stopping when the file isn't found to not interfere
             // with other plugins.
@@ -81,7 +84,7 @@ class Browser extends DAV\ServerPlugin {
         }
 
         $response->setStatus(200);
-        $response->setHeader('Content-Type','text/html; charset=utf-8');
+        $response->setHeader('Content-Type', 'text/html; charset=utf-8');
 
         $view = V('home', [
             'title' => 'Gini Index',
@@ -101,10 +104,9 @@ class Browser extends DAV\ServerPlugin {
      * @param string $value
      * @return string
      */
-    function escapeHTML($value) {
-
-        return htmlspecialchars($value,ENT_QUOTES,'UTF-8');
-
+    public function escapeHTML($value)
+    {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -113,11 +115,10 @@ class Browser extends DAV\ServerPlugin {
      * @param string $path
      * @return string
      */
-    function generateDirectoryIndex($path) {
-
+    public function generateDirectoryIndex($path)
+    {
         $node = $this->server->tree->getNodeForPath($path);
         if ($node instanceof DAV\ICollection) {
-
             $html.="<section><h1>Nodes</h1>\n";
             $html.="<table class=\"nodeTable\">";
 
@@ -129,8 +130,7 @@ class Browser extends DAV\ServerPlugin {
                 '{DAV:}getlastmodified',
             ]);
 
-            foreach($subNodes as $subPath=>$subProps) {
-
+            foreach ($subNodes as $subPath=>$subProps) {
                 $subNode = $this->server->tree->getNodeForPath($subPath);
                 $fullPath = $this->server->getBaseUri() . URLUtil::encodePath($subPath);
                 list(, $displayPath) = URLUtil::splitPath($subPath);
@@ -141,7 +141,7 @@ class Browser extends DAV\ServerPlugin {
             }
             uasort($subNodes, [$this, 'compareNodes']);
 
-            foreach($subNodes as $subProps) {
+            foreach ($subNodes as $subProps) {
                 $type = [
                     'string' => 'Unknown',
                     'icon'   => 'cog',
@@ -166,7 +166,6 @@ class Browser extends DAV\ServerPlugin {
             }
 
             $html.= '</table>';
-
         }
 
         $html.="</section>";
@@ -179,9 +178,8 @@ class Browser extends DAV\ServerPlugin {
 
         $properties = $propFind->getResultForMultiStatus()[200];
 
-        foreach($properties as $propName => $propValue) {
+        foreach ($properties as $propName => $propValue) {
             $html.=$this->drawPropertyRow($propName, $propValue);
-
         }
 
 
@@ -196,7 +194,6 @@ class Browser extends DAV\ServerPlugin {
         }
 
         if ($output) {
-
             $html.="<section><h1>Actions</h1>";
             $html.="<div class=\"actions\">\n";
             $html.=$output;
@@ -212,7 +209,6 @@ class Browser extends DAV\ServerPlugin {
         $this->server->httpResponse->setHeader('Content-Security-Policy', "img-src 'self'; style-src 'self';");
 
         return $html;
-
     }
 
     /**
@@ -226,15 +222,17 @@ class Browser extends DAV\ServerPlugin {
      * @param mixed $output
      * @return void
      */
-    function htmlActionsPanel(DAV\INode $node, &$output) {
-
-        if (!$node instanceof DAV\ICollection)
+    public function htmlActionsPanel(DAV\INode $node, &$output)
+    {
+        if (!$node instanceof DAV\ICollection) {
             return;
+        }
 
         // We also know fairly certain that if an object is a non-extended
         // SimpleCollection, we won't need to show the panel either.
-        if (get_class($node)==='Sabre\\DAV\\SimpleCollection')
+        if (get_class($node)==='Sabre\\DAV\\SimpleCollection') {
             return;
+        }
 
         ob_start();
         echo '<form method="post" action="">
@@ -253,7 +251,6 @@ class Browser extends DAV\ServerPlugin {
         ';
 
         $output.=ob_get_clean();
-
     }
 
     /**
@@ -263,10 +260,9 @@ class Browser extends DAV\ServerPlugin {
      * @param string $assetName
      * @return string
      */
-    protected function getAssetUrl($assetName) {
-
+    protected function getAssetUrl($assetName)
+    {
         return $this->server->getBaseUri() . '?sabreAction=asset&assetName=' . urlencode($assetName);
-
     }
 
     /**
@@ -276,8 +272,8 @@ class Browser extends DAV\ServerPlugin {
      * @return string
      * @throws DAV\Exception\NotFound
      */
-    protected function getLocalAssetPath($assetName) {
-
+    protected function getLocalAssetPath($assetName)
+    {
         $assetDir = __DIR__ . '/assets/';
         $path = $assetDir . $assetName;
 
@@ -298,8 +294,8 @@ class Browser extends DAV\ServerPlugin {
      * @param string $assetName
      * @return void
      */
-    protected function serveAsset($assetName) {
-
+    protected function serveAsset($assetName)
+    {
         $assetPath = $this->getLocalAssetPath($assetName);
 
         // Rudimentary mime type detection
@@ -319,8 +315,7 @@ class Browser extends DAV\ServerPlugin {
         $this->server->httpResponse->setHeader('Content-Length', filesize($assetPath));
         $this->server->httpResponse->setHeader('Cache-Control', 'public, max-age=1209600');
         $this->server->httpResponse->setStatus(200);
-        $this->server->httpResponse->setBody(fopen($assetPath,'r'));
-
+        $this->server->httpResponse->setBody(fopen($assetPath, 'r'));
     }
 
     /**
@@ -331,8 +326,8 @@ class Browser extends DAV\ServerPlugin {
      * @param array $b
      * @return int
      */
-    protected function compareNodes($a, $b) {
-
+    protected function compareNodes($a, $b)
+    {
         $typeA = (isset($a['{DAV:}resourcetype']))
             ? (in_array('{DAV:}collection', $a['{DAV:}resourcetype']->getValue()))
             : false;
@@ -346,7 +341,6 @@ class Browser extends DAV\ServerPlugin {
             return strnatcasecmp($a['displayPath'], $b['displayPath']);
         }
         return (($typeA < $typeB) ? 1 : -1);
-
     }
 
     /**
@@ -356,8 +350,8 @@ class Browser extends DAV\ServerPlugin {
      * @param INode $node
      * @return array
      */
-    private function mapResourceType(array $resourceTypes, $node) {
-
+    private function mapResourceType(array $resourceTypes, $node)
+    {
         if (!$resourceTypes) {
             if ($node instanceof DAV\IFile) {
                 return [
@@ -423,14 +417,14 @@ class Browser extends DAV\ServerPlugin {
             'string' => [],
             'icon' => 'cog',
         ];
-        foreach($resourceTypes as $k=> $resourceType) {
+        foreach ($resourceTypes as $k=> $resourceType) {
             if (isset($types[$resourceType])) {
                 $info['string'][] = $types[$resourceType]['string'];
             } else {
                 $info['string'][] = $resourceType;
             }
         }
-        foreach($types as $key=>$resourceInfo) {
+        foreach ($types as $key=>$resourceInfo) {
             if (in_array($key, $resourceTypes)) {
                 $info['icon'] = $resourceInfo['icon'];
                 break;
@@ -439,7 +433,6 @@ class Browser extends DAV\ServerPlugin {
         $info['string'] = implode(', ', $info['string']);
 
         return $info;
-
     }
 
     /**
@@ -449,13 +442,12 @@ class Browser extends DAV\ServerPlugin {
      * @param mixed $value
      * @return string
      */
-    private function drawPropertyRow($name, $value) {
-
+    private function drawPropertyRow($name, $value)
+    {
         $view = 'unknown';
         if (is_scalar($value)) {
             $view = 'string';
-        } elseif($value instanceof DAV\Property) {
-
+        } elseif ($value instanceof DAV\Property) {
             $mapping = [
                 'Sabre\\DAV\\Property\\IHref' => 'href',
                 'Sabre\\DAV\\Property\\HrefList' => 'hreflist',
@@ -467,7 +459,7 @@ class Browser extends DAV\ServerPlugin {
             ];
 
             $view = 'complex';
-            foreach($mapping as $class=>$val) {
+            foreach ($mapping as $class=>$val) {
                 if ($value instanceof $class) {
                     $view = $val;
                     break;
@@ -484,7 +476,7 @@ class Browser extends DAV\ServerPlugin {
 
         ob_start();
 
-        $xmlValueDisplay = function($propName) {
+        $xmlValueDisplay = function ($propName) {
             $realPropName = $propName;
             list($ns, $localName) = DAV\XMLUtil::parseClarkNotation($propName);
             if (isset($this->server->xmlNamespaces[$ns])) {
@@ -495,28 +487,28 @@ class Browser extends DAV\ServerPlugin {
 
         echo "<tr><th><span title=\"", $this->escapeHTML($realName), "\">", $this->escapeHTML($name), "</span></th><td>";
 
-        switch($view) {
+        switch ($view) {
 
-            case 'href' :
+            case 'href':
                 echo "<a href=\"" . $this->server->getBaseUri() . $value->getHref() . '">' . $this->server->getBaseUri() . $value->getHref() . '</a>';
                 break;
-            case 'hreflist' :
-                echo implode('<br />', array_map(function($href) {
-                    if (stripos($href,'mailto:')===0 || stripos($href,'/')===0 || stripos($href,'http:')===0 || stripos($href,'https:') === 0) {
+            case 'hreflist':
+                echo implode('<br />', array_map(function ($href) {
+                    if (stripos($href, 'mailto:')===0 || stripos($href, '/')===0 || stripos($href, 'http:')===0 || stripos($href, 'https:') === 0) {
                         return "<a href=\"" . $this->escapeHTML($href) . '">' . $this->escapeHTML($href) . '</a>';
                     } else {
                         return "<a href=\"" . $this->escapeHTML($this->server->getBaseUri() . $href) . '">' . $this->escapeHTML($this->server->getBaseUri() . $href) . '</a>';
                     }
                 }, $value->getHrefs()));
                 break;
-            case 'xmlvaluelist' :
+            case 'xmlvaluelist':
                 echo implode(', ', array_map($xmlValueDisplay, $value->getValue()));
                 break;
-            case 'valuelist' :
+            case 'valuelist':
                 echo $this->escapeHTML(implode(', ', $value->getValue()));
                 break;
-            case 'supported-privilege-set' :
-                $traverse = function($priv) use (&$traverse, $xmlValueDisplay) {
+            case 'supported-privilege-set':
+                $traverse = function ($priv) use (&$traverse, $xmlValueDisplay) {
                     echo "<li>";
                     echo $xmlValueDisplay($priv['privilege']);
                     if (isset($priv['abstract']) && $priv['abstract']) {
@@ -527,7 +519,7 @@ class Browser extends DAV\ServerPlugin {
                     }
                     if (isset($priv['aggregates'])) {
                         echo "\n<ul>\n";
-                        foreach($priv['aggregates'] as $subPriv) {
+                        foreach ($priv['aggregates'] as $subPriv) {
                             $traverse($subPriv);
                         }
                         echo "</ul>";
@@ -538,20 +530,18 @@ class Browser extends DAV\ServerPlugin {
                 $traverse($value->getValue(), '');
                 echo "</ul>\n";
                 break;
-            case 'string' :
+            case 'string':
                 echo $this->escapeHTML($value);
                 break;
-            case 'complex' :
+            case 'complex':
                 echo '<em title="' . $this->escapeHTML(get_class($value)) . '">complex</em>';
                 break;
-            default :
+            default:
                 echo '<em>unknown</em>';
                 break;
 
         }
 
         return ob_get_clean();
-
     }
-
 }

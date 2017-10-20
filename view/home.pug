@@ -4,13 +4,42 @@ head
   title= title
   meta(http-equiv='Content-Style-Type', content='text/css')
   meta(http-equiv='Content-Script-Type', content='text/javascript')
+  link(rel='stylesheet', href='https://unpkg.com/purecss@1.0.0/build/pure-min.css', integrity='sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w', crossorigin='anonymous')
+  link(rel='stylesheet', href='https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css')
   base(href=baseUri)
-body
-  h1 #{node.getName()}
-  ul
-    if !node.isRoot()
-      li
-        a(href='..') ..
-    for subNode in subNodes
-      li
-        a(href=subNode.path)= subNode.name
+  style
+    | a { color: #666; text-decoration: none }
+    | a:hover { color: #000; }
+body(style='padding:0 1em')
+  .content(style='max-width:800px;margin:0 auto')
+    .pure-g
+      .pure-u-1
+        h1(style='text-align:center')= node.isRoot() ? title : node.getName()
+
+      .pure-u-1
+        table.pure-table.pure-table-horizontal(style='width:100%')
+          thead
+            tr
+              th Module Name
+              th Last Modified
+          tbody
+            if !node.isRoot()
+              tr
+                td
+                  a(href='..')
+                    i.fa.fa-reply
+                    &nbsp;
+                    回到上级目录
+                td
+            for subNode in subNodes
+              tr
+                td
+                  if in_array('{DAV:}collection', subNode.type)
+                    i.fa.fa-folder
+                  else
+                    i.fa.fa-file-archive-o
+                  &nbsp;&nbsp;
+                  a(href=subNode.path)
+                    = subNode.name
+                td
+                  div= subNode.mtime
