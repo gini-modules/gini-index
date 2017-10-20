@@ -33,7 +33,7 @@ class IndexLog extends Handler
         };
         $_fillReplacements($replacements, $context);
 
-        $context['timestamp'] = date('Y-m-d H:i:s');
+        $context['timestamp'] = date('c');
         $context['message'] = strtr($message, $replacements);
 
         $fh = fopen(self::logFile(), 'a');

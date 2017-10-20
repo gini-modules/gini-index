@@ -51,5 +51,5 @@ body(style='padding:0 1em')
         div(style='padding:0 1em')
           for log in logs
             div(style='padding:.2em .5em; border-bottom:1px dotted #ccc')
-              small(style='color:#666')= log.timestamp
+              small(style='color:#666')= log.timestamp.format('Y-m-d H:i:s')
               p(style='margin:0 0 5px')= log.message

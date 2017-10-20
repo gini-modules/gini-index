@@ -64,16 +64,19 @@ class Browser extends DAV\ServerPlugin
                     $name = $node->getName();
                     if ($node instanceof Directory
                         || ($node instanceof File && preg_match('/.+\.tgz$/', $name))) {
+                        $mtime = $props['{DAV:}getlastmodified']->getTime()
+                            ->setTimezone(new \DateTimeZone(date_default_timezone_get()))
+                            ->format('Y-m-d H:i:s');
                         $subNodes[] = [
                             'node' => $node,
                             'path' => $path,
                             'name' => $name,
                             'type' => $props['{DAV:}resourcetype']->getValue(),
-                            'mtime' => $props['{DAV:}getlastmodified']->getTime()->format('Y-m-d H:i:s'),
+                            'mtime' => $mtime,
                         ];
                     }
                 });
-                usort($subNodes, function($a, $b) {
+                usort($subNodes, function ($a, $b) {
                     return date_create($a['mtime']) < date_create($b['mtime']);
                 });
             } else {
@@ -96,7 +99,7 @@ class Browser extends DAV\ServerPlugin
             while (-1 !== fseek($fh, $pos, SEEK_END)) {
                 $char = fgetc($fh);
                 if (PHP_EOL == $char) {
-                    $logs[] = json_decode($currentLine, true);
+                    $logs[] = $this->parseLogFromLine($currentLine);
                     $currentLine = '';
                     if (count($logs) >= $maxLine) {
                         break;
@@ -106,7 +109,7 @@ class Browser extends DAV\ServerPlugin
                 }
                 $pos--;
             }
-            $currentLine and $logs[] = json_decode($currentLine, true); // Grab final line
+            $currentLine and $logs[] = $this->parseLogFromLine($currentLine); // Grab final line
         }
 
         $response->setStatus(200);
@@ -123,5 +126,13 @@ class Browser extends DAV\ServerPlugin
         $response->setBody((string)$view);
 
         return false;
+    }
+
+    private function parseLogFromLine($line)
+    {
+        $log = json_decode($line, true);
+        $log['timestamp'] = date_create($log['timestamp'])
+            ->setTimezone(new \DateTimeZone(date_default_timezone_get())) ;
+        return $log;
     }
 }
