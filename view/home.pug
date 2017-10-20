@@ -11,17 +11,18 @@ head
     | a { color: #666; text-decoration: none }
     | a:hover { color: #000; }
 body(style='padding:0 1em')
-  .content(style='max-width:800px;margin:0 auto')
+  .content(style='max-width:960px;margin:0 auto') 
     .pure-g
-      .pure-u-1
+      .pure-u-1-2
         h1(style='text-align:center')= node.isRoot() ? title : node.getName()
-
-      .pure-u-1
+        div(style='text-align:right') #{count(subNodes)} 个项目
+    .pure-g
+      .pure-u-1-2
         table.pure-table.pure-table-horizontal(style='width:100%')
           thead
             tr
-              th Module Name
-              th Last Modified
+              th 项目名称
+              th 最近更新
           tbody
             if !node.isRoot()
               tr
@@ -42,4 +43,13 @@ body(style='padding:0 1em')
                   a(href=subNode.path)
                     = subNode.name
                 td
-                  div= subNode.mtime
+                  small= subNode.mtime
+        div(style='text-align:center')
+          div
+            h2(style='color:#999') Genee &copy; 2017
+      .pure-u-1-2
+        div(style='padding:0 1em')
+          for log in logs
+            div(style='padding:.2em .5em; border-bottom:1px dotted #ccc')
+              small(style='color:#666')= log.timestamp
+              p(style='margin:0 0 5px')= log.message

@@ -84,6 +84,17 @@ class Server
         $fullPath = escapeshellcmd($this->modulePath($path));
         $info = json_decode(`tar -zxOf $fullPath gini.json`, true);
 
+        $authPlugin = $this->server->getPlugin('auth');
+        \Gini\Logger::of('gini-index-log')->info('{user} 发布了 {module.name}({module.id}/{module.version})', [
+            'user' => $authPlugin->getCurrentUser(),
+            'module' => [
+                'id' => $module,
+                'name' => $info['title'],
+                'version' => $info['version']
+            ],
+            'operation' => 'publish'
+        ]);
+
         $indexPath = $this->modulePath($module.'/index.json');
         $indexInfo = @json_decode(file_get_contents($indexPath), true);
         if (!$indexInfo) {
