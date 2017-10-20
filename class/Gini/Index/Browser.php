@@ -83,28 +83,28 @@ class Browser extends DAV\ServerPlugin
         }
 
         // Load Log
+        $logs = [];
         $maxLine = 50;
         $auditLogFile = \Gini\Logger\IndexLog::logFile();
         $fh = fopen($auditLogFile, 'r');
-        $pos = -2;
-        
-        $logs = [];
-        $currentLine = '';
-        while (-1 !== fseek($fh, $pos, SEEK_END)) {
-            $char = fgetc($fh);
-            if (PHP_EOL == $char) {
-                $logs[] = json_decode($currentLine, true);
-                $currentLine = '';
-                if (count($logs) >= $maxLine) {
-                    break;
+        if ($fh) {
+            $pos = -2;
+            $currentLine = '';
+            while (-1 !== fseek($fh, $pos, SEEK_END)) {
+                $char = fgetc($fh);
+                if (PHP_EOL == $char) {
+                    $logs[] = json_decode($currentLine, true);
+                    $currentLine = '';
+                    if (count($logs) >= $maxLine) {
+                        break;
+                    }
+                } else {
+                    $currentLine = $char . $currentLine;
                 }
-            } else {
-                $currentLine = $char . $currentLine;
+                $pos--;
             }
-            $pos--;
+            $currentLine and $logs[] = json_decode($currentLine, true); // Grab final line
         }
-        
-        $currentLine and $logs[] = json_decode($currentLine, true); // Grab final line
 
         $response->setStatus(200);
         $response->setHeader('Content-Type', 'text/html; charset=utf-8');
