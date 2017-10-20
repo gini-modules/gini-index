@@ -73,6 +73,9 @@ class Browser extends DAV\ServerPlugin
                         ];
                     }
                 });
+                usort($subNodes, function($a, $b) {
+                    return date_create($a['mtime']) < date_create($b['mtime']);
+                });
             } else {
                 throw new DAV\Exception\NotFound('Not a Directory!');
             }
