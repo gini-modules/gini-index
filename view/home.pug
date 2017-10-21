@@ -33,7 +33,7 @@ body(style='padding:0 1em')
   .content(style='max-width:960px;margin:0 auto')
     h1(style='text-align:center;margin:2em 0')= title
     .pure-g
-      .pure-u-1-2
+      .pure-u-14-24
         table(style='width:100%')
           thead
             tr
@@ -61,7 +61,7 @@ body(style='padding:0 1em')
                     = subNode.name
                 td
                   div(style='color:#ff0')= subNode.mtime
-      .pure-u-1-2
+      .pure-u-10-24
         div(style='margin:0 0 0 1em;padding:0 1em; border-left:1px solid #ccc')
           for log in logs
             p(style='color:#ff0')= log.timestamp
