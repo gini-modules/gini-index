@@ -6,50 +6,68 @@ head
   meta(http-equiv='Content-Script-Type', content='text/javascript')
   link(rel='stylesheet', href='https://unpkg.com/purecss@1.0.0/build/pure-min.css', integrity='sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w', crossorigin='anonymous')
   link(rel='stylesheet', href='https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css')
+  link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/hack-font/build/web/hack.css')
+  script(src=RURL('ansi_up.js', 'js'))
   base(href=baseUri)
-  style
-    | a { color: #666; text-decoration: none }
-    | a:hover { color: #000; }
+  style.
+    body,a,p,div,span,h1,h2,h3,h4,h5,h6 {
+       font-family: Hack, monospace;
+       font-size: 11pt;
+       color: #ccc;
+       line-height: 1.5;
+       margin: 0;
+    }
+    body {
+       background-color: #222;
+       padding: 1em;
+    }
+    h1,h2,h3,h4,h5,h6 {
+      font-weight: bold;
+      color: #fff;
+    }
+    a { color: #ccc; text-decoration: none }
+    a:hover { color: #fff; }
+    tr.hoverable:hover td { background-color: #666; }
 body(style='padding:0 1em')
-  .content(style='max-width:960px;margin:0 auto') 
+  .content(style='max-width:960px;margin:0 auto')
+    h1(style='text-align:center;margin:2em 0')= title
     .pure-g
       .pure-u-1-2
-        h1(style='text-align:center')= node.isRoot() ? title : node.getName()
-        div(style='text-align:right') #{count(subNodes)} 个项目
-    .pure-g
-      .pure-u-1-2
-        table.pure-table.pure-table-horizontal(style='width:100%')
+        table(style='width:100%')
           thead
             tr
-              th 项目名称
-              th 最近更新
+              th(style='text-align:left') #{node.isRoot() ? '模块' : node.getName()} (#{count(subNodes)}个)
+              th(style='text-align:left') 最近更新
+            tr
+              td(colspan=2)
+                hr
           tbody
             if !node.isRoot()
-              tr
-                td
+              tr.hoverable
+                td(colspan=2)
                   a(href='..')
                     i.fa.fa-reply
-                    &nbsp;
-                    回到上级目录
-                td
+                    | &nbsp;回到上级目录
             for subNode in subNodes
-              tr
+              tr.hoverable
                 td
-                  if in_array('{DAV:}collection', subNode.type)
-                    i.fa.fa-folder
-                  else
-                    i.fa.fa-file-archive-o
-                  &nbsp;&nbsp;
                   a(href=subNode.path)
+                    if in_array('{DAV:}collection', subNode.type)
+                      i.fa.fa-folder
+                    else
+                      i.fa.fa-file-archive-o
+                    &nbsp;
                     = subNode.name
                 td
-                  small= subNode.mtime
-        div(style='text-align:center')
-          div
-            h2(style='color:#999') Genee &copy; 2017
+                  div(style='color:#ff0')= subNode.mtime
       .pure-u-1-2
-        div(style='padding:0 1em')
+        div(style='margin:0 0 0 1em;padding:0 1em; border-left:1px solid #ccc')
           for log in logs
-            div(style='padding:.2em .5em; border-bottom:1px dotted #ccc')
-              small(style='color:#666')= log.timestamp.format('Y-m-d H:i:s')
-              p(style='margin:0 0 5px')= log.message
+            p(style='color:#ff0')= log.timestamp
+            p(style='color:#ccc')= log.message
+            br
+
+    div(style='text-align:center;margin:2em 0')
+      div
+        h2(style='color:#fff') Genee &copy; 2017
+

@@ -132,7 +132,8 @@ class Browser extends DAV\ServerPlugin
     {
         $log = json_decode($line, true);
         $log['timestamp'] = date_create($log['timestamp'])
-            ->setTimezone(new \DateTimeZone(date_default_timezone_get())) ;
+            ->setTimezone(new \DateTimeZone(date_default_timezone_get()))
+            ->format('Y-m-d H:i:s');
         return $log;
     }
 }
