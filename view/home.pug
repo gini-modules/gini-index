@@ -26,8 +26,9 @@ head
       color: #fff;
     }
     a { color: #ccc; text-decoration: none }
-    a:hover { color: #fff; }
-    tr.hoverable:hover td { background-color: #666; }
+    a:hover { color: #fff }
+    tr.hoverable:hover td { background-color: #666}
+    th,td { padding:0 1em }
 body(style='padding:0 1em')
   .content(style='max-width:960px;margin:0 auto')
     h1(style='text-align:center;margin:2em 0')= title
@@ -39,7 +40,7 @@ body(style='padding:0 1em')
               th(style='text-align:left') #{node.isRoot() ? '模块' : node.getName()} (#{count(subNodes)}个)
               th(style='text-align:left') 最近更新
             tr
-              td(colspan=2)
+              td(colspan=2,style='padding:0')
                 hr
           tbody
             if !node.isRoot()
