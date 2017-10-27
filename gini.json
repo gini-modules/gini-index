@@ -3,6 +3,7 @@
     "description": "Gini Index Server",
     "version": "0.1.0",
     "dependencies": {
-        "pug": "*"
+        "pug": "*",
+        "gini": ">=1.11.0"
     }
 }

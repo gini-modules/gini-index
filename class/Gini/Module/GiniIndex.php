@@ -2,7 +2,7 @@
 
 namespace Gini\Module;
 
-class GiniIndex
+class GiniIndex extends Prototype
 {
     public static function modulePath($path = null)
     {
