@@ -2,11 +2,15 @@
 
 namespace Gini\Controller;
 
+use \Gini\Index\Auth;
+use \Gini\Config;
+use \Gini\Version;
+
 class API
 {
     private function modulePath($path=null)
     {
-        $modulePath = \Gini\Config::get('dav.root') ?: APP_PATH . '/' . DATA_DIR . '/modules';
+        $modulePath = Config::get('dav.root') ?: APP_PATH . '/' . DATA_DIR . '/modules';
         return $modulePath . '/' . ltrim($path, '/');
     }
 
@@ -43,7 +47,7 @@ class API
         if (!$this->verify($username, $password)) {
             return false;
         }
-        $auth = new \Gini\Index\Auth\DAV;
+        $auth = new Auth\DAV;
         return $auth->createToken($username);
     }
 
@@ -63,7 +67,7 @@ class API
                 $vers = array_keys($pkgs);
                 // find latest match version
                 foreach ($vers as $version) {
-                    $v = new \Gini\Version($version);
+                    $v = new Version($version);
                     if ($matched) {
                         if ($matched->compare($v) > 0) {
                             continue;
