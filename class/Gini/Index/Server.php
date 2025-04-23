@@ -74,7 +74,7 @@ class Server
 
     public function fileModified($path)
     {
-        if (!preg_match('`^([\w-]+)/([\w-.]+)\.tgz$`', $path, $parts)) {
+        if (!preg_match('`^([\w-]+)/([\w\-\.]+)\.tgz$`', $path, $parts)) {
             return;
         }
 
@@ -135,7 +135,7 @@ class Server
 
     public function fileAfterUnbind($path)
     {
-        if (!preg_match('`^([\w-]+)/([\w-.]+)\.tgz$`', $path, $parts)) {
+        if (!preg_match('`^([\w-]+)/([\w\-\.]+)\.tgz$`', $path, $parts)) {
             return;
         }
 
