@@ -12,15 +12,7 @@ const RANDOM_BYTES_LENGTH=20;
 
 class DAV implements BackendInterface
 {
-    private $request;
-    private $response;
     private $currentUser;
-
-    public function __construct(RequestInterface $request, ResponseInterface $response)
-    {
-        $this->request = $request;
-        $this->response = $response;
-    }
 
     private function tokensFile()
     {
