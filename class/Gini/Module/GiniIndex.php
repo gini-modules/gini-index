@@ -4,7 +4,7 @@ namespace Gini\Module;
 
 class GiniIndex extends Prototype
 {
-    public static function modulePath($path = null)
+    public static function modulePath($path = '')
     {
         $modulePath = \Gini\Config::get('dav.root') ?: APP_PATH . '/' . DATA_DIR . '/modules';
         return $modulePath . '/' . ltrim($path, '/');

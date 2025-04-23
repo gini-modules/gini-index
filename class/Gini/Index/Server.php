@@ -71,7 +71,7 @@ class Server
 
     public function execute()
     {
-        $this->server->exec();
+        $this->server->start();
     }
 
     public function modulePath($path=null)
