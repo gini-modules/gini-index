@@ -33,7 +33,6 @@ class Directory extends DAVDirectory implements IACL
             return new PrincipalCollection($principalBackend, 'principals');
         }
 
-        $bb = $this->path;
         $path = rtrim($this->path, '/') . '/' . ltrim($name, '/');
         if (!file_exists($path)) {
             throw new NotFound('File with name ' . $path . ' could not be located');
@@ -45,12 +44,12 @@ class Directory extends DAVDirectory implements IACL
             return new File($path);
         }
     }
-        
+
     public function getChildren()
     {
         $result = [];
         foreach (scandir($this->path) as $file) {
-            if ($file==='.' || $file==='..') {
+            if ($file[0] === '.') {
                 continue;
             }
             $result[] = $this->getChild($file);
