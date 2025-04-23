@@ -2,14 +2,26 @@
 
 namespace Gini\Index\Auth;
 
-use \Sabre\DAV\Auth\Backend\BackendInterface;
-use \Sabre\DAV\Server;
-use \Sabre\DAV\Exception\NotAuthenticated;
+use Sabre\DAV\Auth\Backend\BackendInterface;
+use Sabre\DAV\Server;
+use Sabre\DAV\Exception\NotAuthenticated;
+use Sabre\HTTP\RequestInterface;
+use Sabre\HTTP\ResponseInterface;
 
 const RANDOM_BYTES_LENGTH=20;
 
 class DAV implements BackendInterface
 {
+    private $request;
+    private $response;
+    private $currentUser;
+
+    public function __construct(RequestInterface $request, ResponseInterface $response)
+    {
+        $this->request = $request;
+        $this->response = $response;
+    }
+
     private function tokensFile()
     {
         return sys_get_temp_dir().'/gini-index-tokens.json';
@@ -23,7 +35,7 @@ class DAV implements BackendInterface
         $file = $this->tokensFile();
         $tokenInfo = (array) @json_decode(file_get_contents($file), true);
         $tokenInfo[$username] = $bcrypt;
-        file_put_contents($file, J($tokenInfo));
+        file_put_contents($file, json_encode($tokenInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         return base64_encode($username . ':' . $token);
     }
 
@@ -33,26 +45,27 @@ class DAV implements BackendInterface
         return isset($tokenInfo[$username]) && password_verify($token, $tokenInfo[$username]);
     }
 
-    public function authenticate(Server $server, $realm)
+    public function check(RequestInterface $request, ResponseInterface $response)
     {
-        $auth = new HTTP($realm, $server->httpRequest, $server->httpResponse);
-        $usertoken = $auth->getCredentials($server->httpRequest);
+        $auth = new HTTP('', $request, $response);
+        $usertoken = $auth->getCredentials($request);
         if (!$usertoken) {
-            $auth->requireLogin();
-            throw new NotAuthenticated('No Gini authentication headers were found');
+            return [false, 'No Gini authentication headers were found'];
         }
 
-        // Authenticates the user
-        if (!$this->validateUserToken($usertoken[0], $usertoken[1])) {
-            $auth->requireLogin();
-            throw new NotAuthenticated('Username or token does not match');
+        if ($this->validateUserToken($usertoken[0], $usertoken[1])) {
+            $this->currentUser = $usertoken[0];
+            return [true, 'principals/' . $this->currentUser];
         }
-
-        $this->currentUser = $usertoken[0];
-        return true;
+        return [false, 'Username or token does not match'];
     }
 
-    private $currentUser;
+    public function challenge(RequestInterface $request, ResponseInterface $response)
+    {
+        $auth = new HTTP('', $request, $response);
+        $auth->requireLogin();
+    }
+
     public function getCurrentUser()
     {
         return $this->currentUser;

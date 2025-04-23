@@ -1,7 +1,11 @@
 <?php
 namespace Gini\Index;
 
-class File extends \Sabre\DAV\FS\File implements \Sabre\DAVACL\IACL
+use Sabre\DAV\FS\File as DAVFile;
+use Sabre\DAVACL\IACL;
+use Sabre\DAV\Exception\Forbidden;
+
+class File extends DAVFile implements IACL
 {
     use ACLTrait;
     use NameingTrait;
@@ -9,7 +13,7 @@ class File extends \Sabre\DAV\FS\File implements \Sabre\DAVACL\IACL
     public function delete()
     {
         if (basename($this->path) == 'index.json') {
-            throw new \Sabre\DAV\Exception\Forbidden('Not allowed to delete index.json');
+            throw new Forbidden('Not allowed to delete index.json');
         }
         return parent::delete();
     }

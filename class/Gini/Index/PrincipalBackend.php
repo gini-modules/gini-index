@@ -2,10 +2,9 @@
 
 namespace Gini\Index;
 
-use
-    \Sabre\DAV;
-use \Sabre\DAVACL;
-use \Sabre\HTTP\URLUtil;
+use Sabre\DAV;
+use Sabre\DAVACL;
+use Sabre\HTTP\URLUtil;
 
 class PrincipalBackend extends DAVACL\PrincipalBackend\AbstractBackend
 {

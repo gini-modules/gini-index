@@ -2,19 +2,18 @@
 
 namespace Gini\Index;
 
-use
-    Sabre\DAV;
-use Sabre\HTTP\URLUtil;
+use Sabre\DAV;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\ResponseInterface;
+use Sabre\DAV\ServerPlugin;
 
-class Browser extends DAV\ServerPlugin
+class Browser extends ServerPlugin
 {
 
     /**
      * reference to server class
      *
-     * @var Sabre\DAV\Server
+     * @var DAV\Server
      */
     protected $server;
 

@@ -2,11 +2,13 @@
 
 namespace Gini\Index;
 
-use \Sabre\DAV\Exception\NotFound;
-use \Sabre\HTTP\URLUtil;
-use \Sabre\DAVACL\PrincipalCollection;
+use Sabre\DAV\Exception\NotFound;
+use Sabre\HTTP\URLUtil;
+use Sabre\DAVACL\PrincipalCollection;
+use Sabre\DAV\FS\Directory as DAVDirectory;
+use Sabre\DAVACL\IACL;
 
-class Directory extends \Sabre\DAV\FS\Directory implements \Sabre\DAVACL\IACL
+class Directory extends DAVDirectory implements IACL
 {
     use ACLTrait;
     use NameingTrait;
@@ -28,7 +30,7 @@ class Directory extends \Sabre\DAV\FS\Directory implements \Sabre\DAVACL\IACL
     {
         if ($this->isRoot && $name == 'principals') {
             $principalBackend = new PrincipalBackend();
-            return new PrincipalCollection($principalBackend);
+            return new PrincipalCollection($principalBackend, 'principals');
         }
 
         $bb = $this->path;
