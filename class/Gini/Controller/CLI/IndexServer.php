@@ -2,11 +2,11 @@
 
 namespace Gini\Controller\CLI;
 
-use \Gini\Controller\CLI;
+use Gini\Controller\CLI;
 use Gini\Module\GiniIndex;
 use Gini\File;
 
-class Index extends CLI
+class IndexServer extends CLI
 {
     public function actionSync()
     {
