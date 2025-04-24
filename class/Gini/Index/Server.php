@@ -87,7 +87,7 @@ class Server
     public function fileModified($path)
     {
         if (!preg_match('`^([\w\-]+)/([\w\-\.]+)\.tgz$`', $path, $parts)) {
-            return;
+            return true;
         }
 
         $module = $parts[1];
@@ -97,8 +97,10 @@ class Server
         $info = json_decode(`tar -zxOf $fullPath gini.json`, true);
 
         $authPlugin = $this->server->getPlugin('auth');
+        $principal = $authPlugin->getCurrentPrincipal();
+        $user = str_replace('principal/', '', $principal);
         Logger::of('gini-index-log')->info('{user} 发布了 {module.name}({module.id}/{module.version})', [
-            'user' => $authPlugin->getCurrentUser(),
+            'user' => $user,
             'module' => [
                 'id' => $module,
                 'name' => $info['title'],
@@ -124,12 +126,14 @@ class Server
 
         $totalIndexInfo[$module] = $indexInfo;
         $this->writeInfoFile($totalIndexPath, json_encode($totalIndexInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        return true;
     }
 
     public function fileBeforeBind($path)
     {
         if (!preg_match('`^([\w\-]+)$`', $path, $parts)) {
-            return;
+            return true;
         }
 
         $module = $parts[1];
@@ -137,18 +141,21 @@ class Server
 
         $authPlugin = $this->server->getPlugin('auth');
         if (!isset($acl[$module])) {
+            $principal = $authPlugin->getCurrentPrincipal();
+            $user = str_replace('principal/', '', $principal);
             $aclConf[$module] = [
-                $authPlugin->getCurrentUser() => 'rw'
+                $user => 'rw'
             ];
+            GiniIndex::aclConfig($aclConf);
         }
 
-        GiniIndex::aclConfig($aclConf);
+        return true;
     }
 
     public function fileAfterUnbind($path)
     {
         if (!preg_match('`^([\w\-]+)/([\w\-\.]+)\.tgz$`', $path, $parts)) {
-            return;
+            return true;
         }
 
         $module = $parts[1];
@@ -167,6 +174,8 @@ class Server
             unset($totalIndexInfo[$module][$version]);
             $this->writeInfoFile($totalIndexPath, json_encode($totalIndexInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         }
+
+        return true;
     }
 
     public function lockFile()

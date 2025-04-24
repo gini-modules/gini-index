@@ -26,6 +26,5 @@ class GiniIndex extends Prototype
     public static function setup()
     {
         date_default_timezone_set(\Gini\Config::get('system.timezone') ?: 'Asia/Shanghai');
-        \Gini\URI::setup();
     }
 }

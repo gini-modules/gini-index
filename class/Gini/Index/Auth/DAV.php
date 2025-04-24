@@ -3,20 +3,16 @@
 namespace Gini\Index\Auth;
 
 use Sabre\DAV\Auth\Backend\BackendInterface;
-use Sabre\DAV\Server;
-use Sabre\DAV\Exception\NotAuthenticated;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\ResponseInterface;
 
-const RANDOM_BYTES_LENGTH=20;
+const RANDOM_BYTES_LENGTH = 20;
 
 class DAV implements BackendInterface
 {
-    private $currentUser;
-
     private function tokensFile()
     {
-        return sys_get_temp_dir().'/gini-index-tokens.json';
+        return sys_get_temp_dir() . '/gini-index-tokens.json';
     }
 
     public function createToken($username)
@@ -46,8 +42,7 @@ class DAV implements BackendInterface
         }
 
         if ($this->validateUserToken($usertoken[0], $usertoken[1])) {
-            $this->currentUser = $usertoken[0];
-            return [true, 'principals/' . $this->currentUser];
+            return [true, 'principals/' . $usertoken[0]];
         }
         return [false, 'Username or token does not match'];
     }
@@ -56,10 +51,5 @@ class DAV implements BackendInterface
     {
         $auth = new HTTP('', $request, $response);
         $auth->requireLogin();
-    }
-
-    public function getCurrentUser()
-    {
-        return $this->currentUser;
     }
 }
